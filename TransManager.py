@@ -4,6 +4,7 @@ import tkinter.messagebox as mb
 from tkinter import ttk
 
 from datetime import datetime
+from pathlib import Path
 
 import sqlite3
 import pandas as pd
@@ -29,6 +30,9 @@ class TransManager(tk.Tk):
     def __init__(self):  
         super().__init__()  
 
+        # Verify or create the CSV files
+        self.verify_create_csv()
+        
         # Global Data Frames
         self.transactions_df = pd.DataFrame()
         self.recordcount = 0
@@ -245,6 +249,10 @@ class TransManager(tk.Tk):
 #
 
     def update_transactions_dataframe(self):
+        
+        # Read the accounts file
+        pd_reader = pd.read_csv('trans_defaultacct.csv')
+        transaccount_df = pd.DataFrame(pd_reader)
 
         # Read the defaults file
         pd_reader = pd.read_csv('trans_defaultdesc.csv')
@@ -268,7 +276,9 @@ class TransManager(tk.Tk):
 
         # Put it all together
         allrows_query = "SELECT t.Date, t.Description, t.OriginalDesc, t.Amount, t.Type, t.Category, t.Account, t.Label, t.Notes, t.Dups, e.UserCategory, e.UserNotes, d.UserCategory FROM transactions t LEFT JOIN transextension e on t.Date=e.Date and t.OriginalDesc=e.OriginalDesc and t.Amount=e.Amount and t.Type=e.Type and t.Account=e.Account LEFT JOIN transdefault d ON t.OriginalDesc LIKE '%'||d.UserDefaultDesc||'%' where t.Account in (?,?,?)"
-        data_tuple = ('Citi ThankYou® Preferred', 'Premier', 'Premier Checking',)
+        UserAccount = transaccount_df['UserAccount'].drop_duplicates()
+        UserAccount = UserAccount.values.tolist()
+        data_tuple = UserAccount
         db_cursor.execute(allrows_query, data_tuple)
 
         # Build the dataframe
@@ -557,6 +567,60 @@ class TransManager(tk.Tk):
         window.grab_set()
 
 #
+# Verify or Create CSV files
+#
+
+    def verify_create_csv(self):  
+
+        #  Validate the extention file.
+
+        path_to_file = 'trans_extensions.csv'
+        path = Path(path_to_file)
+
+        if path.is_file():
+            print(f'The file {path_to_file} exists')
+        else:
+            data = {'Date':['12/12/1900'], 'OriginalDesc':['default'],'Amount':['0.0'],'Type':['default'],'UserCategory':['default'],'UserNotes':['default']}
+            temp_df = pd.DataFrame(data)
+            temp_df.to_csv('trans_extensions.csv', index=False)
+
+        #  Validate the budget file.
+
+        path_to_file = 'trans_budgetcats.csv'
+        path = Path(path_to_file)
+
+        if path.is_file():
+            print(f'The file {path_to_file} exists')
+        else:
+            data = {'UserCategory':['------'],'UserType':['default'],'Month01':['0.0'],'Month02':['0.0'],'Month03':['0.0'],'Month04':['0.0'],'Month05':['0.0'],'Month06':['0.0'],'Month07':['0.0'],'Month08':['0.0'],'Month09':['0.0'],'Month10':['0.0'],'Month11':['0.0'],'Month12':['0.0'],'YearTotal':['0.0']}
+            temp_df = pd.DataFrame(data)
+            temp_df.to_csv('trans_budgetcats.csv', index=False)
+
+        #  Validate the default description file.
+        
+        path_to_file = 'trans_defaultdesc.csv'
+        path = Path(path_to_file)
+
+        if path.is_file():
+            print(f'The file {path_to_file} exists')
+        else:
+            data = {'UserDefaultDesc':['default'], 'UserCategory':['default']}
+            temp_df = pd.DataFrame(data)
+            temp_df.to_csv('trans_defaultdesc.csv', index=False)
+
+        #  Validate the default accounts file.
+        
+        path_to_file = 'trans_defaultacct.csv'
+        path = Path(path_to_file)
+
+        if path.is_file():
+            print(f'The file {path_to_file} exists')
+        else:
+            data = {'UserAccount':['default']}
+            temp_df = pd.DataFrame(data)
+            temp_df.to_csv('trans_defaultacct.csv', index=False)
+
+#
 # Button - Exit
 #
 
@@ -564,6 +628,7 @@ class TransManager(tk.Tk):
         MsgBox = mb.askquestion('Exit Application', 'Are you sure you want to exit?', icon='warning')  
         if MsgBox == 'yes':  
             self.destroy()  
+
 
 #
 # Tinker Mainline
