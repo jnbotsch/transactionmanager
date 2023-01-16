@@ -145,7 +145,7 @@ class TransManager_DataManager():
                 transactions_df['ReportCategory'][ind] = transactions_df['Category'][ind]
 
             # If not category is configured, set to a default value
-            if transactions_df['ReportCategory'][ind] not in trans_budgetcats_df:
+            if transactions_df['ReportCategory'][ind] not in trans_budgetcats_df['UserCategory'].values.tolist():
                 transactions_df['ReportCategory'][ind] = "------"
 
             # Turn Debits into negaive numbers
