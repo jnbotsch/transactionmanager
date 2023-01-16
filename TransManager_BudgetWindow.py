@@ -1,23 +1,32 @@
-
-import tkinter as tk
-import tkinter.messagebox as mb  
-from tkinter import ttk
-
-from datetime import datetime
+##
+##  Transaction Manager for Mint
+##  Created By:  Jeff Botsch
+##  
+##   BudgetWindow - Version 2.0
+##
+##   - Version 2.0 only uses CSV files and dataframes.
+##   - Local pandas queries and sorts are used for faster screen processing.
+##   - System ensures constant CSV file integrity as CSV files are the system of record.
+##
 
 import pandas as pd
 
-# turn off pandas warnings for dataframe updates, default='warn'
-pd.options.mode.chained_assignment = None
+import tkinter as tk
+import tkinter.messagebox as mb  
 
-#
-# Class - Budget Window
-#
+from datetime import datetime
+from tkinter import ttk
+
+##
+##  Class - Budget Window
+##
 
 class BudgetWindow(tk.Toplevel):
 
     def __init__(self, parent):
         super().__init__(parent)
+
+        ##  Window sizing
 
         self.title('Transaction Manager Budget Window')
         self.geometry("900x600")
@@ -25,7 +34,7 @@ class BudgetWindow(tk.Toplevel):
 
         self.budgetcatsGlobal_df = pd.DataFrame()
 
-        # Transaction Window
+        ##  Transaction Window
 
         columns = ("Cat", "Typ", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",'Dec','Yr')
         self.tvBudget= ttk.Treeview(self,show="headings", columns=columns)  
@@ -60,12 +69,15 @@ class BudgetWindow(tk.Toplevel):
         self.tvBudget.heading('Yr', text='Year', anchor='center')
         self.tvBudget.column('Yr',width=50, anchor='w', stretch=True) 
 
-        #Scroll bars are set up below considering placement position(x&y) ,height and width of treeview widget  
+        ##  Scroll bars are set up below considering placement position(x&y) ,height and width of treeview widget 
+         
         vsb= ttk.Scrollbar(self, orient=tk.VERTICAL,command=self.tvBudget.yview)  
         self.tvBudget.configure(yscroll=vsb.set)  
         hsb = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tvBudget.xview)  
         self.tvBudget.configure(xscroll=hsb.set)  
         self.tvBudget.bind("<<TreeviewSelect>>", self.show_budgetcat_record) 
+
+        ##  Window labeles, entry and buttons
 
         self.dspTotal = tk.Label(self, text="Totals:")
         self.dspMonth01 = tk.Entry(self)   
@@ -116,7 +128,8 @@ class BudgetWindow(tk.Toplevel):
         self.btn_delete = tk.Button(self, text="Delete", command=self.delete_budgetcats_data) 
         self.btn_clear = tk.Button(self, text="Clear", command=self.clear_budgetcats_form) 
 
-        # configure the standard grid
+        ##  configure the standard grid
+
         self.columnconfigure(0, weight=1, uniform="BudgetUX")
         self.columnconfigure(1, weight=1, uniform="BudgetUX")
         self.columnconfigure(2, weight=1, uniform="BudgetUX")
@@ -144,6 +157,8 @@ class BudgetWindow(tk.Toplevel):
         self.rowconfigure(26, weight=1, uniform="BudgetUX")
         self.rowconfigure(27, weight=1, uniform="BudgetUX")
         self.rowconfigure(28, weight=1, uniform="BudgetUX")
+
+        ##  Grid spacing
 
         self.tvBudget.grid              (row=3, column =0, rowspan = 15, columnspan = 17, sticky=tk.NSEW, padx=5, pady=2)
         vsb.grid                        (row=3, column =18, rowspan = 15, columnspan = 1, sticky=tk.NS)
@@ -199,9 +214,9 @@ class BudgetWindow(tk.Toplevel):
         self.load_csv_data() 
         self.load_screen_data() 
 
-#
-# initial_csv_data
-#
+##
+##  initial_csv_data
+##
 
     def load_csv_data(self):
 
@@ -224,9 +239,9 @@ class BudgetWindow(tk.Toplevel):
     
         self.budgetcatsGlobal_df = budgetcats_df
 
-#
-# load_screen_data
-#
+##
+##  load_screen_data
+##
 
     def load_screen_data(self):
 
@@ -250,7 +265,7 @@ class BudgetWindow(tk.Toplevel):
         debits_df = self.budgetcatsGlobal_df.query("UserType == 'debit'")
         credits_df = self.budgetcatsGlobal_df.query("UserType == 'credit'")
 
-        #  https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sum.html
+        ##  https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sum.html
 
         self.dspMonth01.insert(0, -abs(debits_df['Month01'].sum())+credits_df['Month01'].sum())  
         self.dspMonth02.insert(0, -abs(debits_df['Month02'].sum())+credits_df['Month02'].sum())  
@@ -265,9 +280,9 @@ class BudgetWindow(tk.Toplevel):
         self.dspMonth11.insert(0, -abs(debits_df['Month11'].sum())+credits_df['Month11'].sum())  
         self.dspMonth12.insert(0, -abs(debits_df['Month12'].sum())+credits_df['Month12'].sum())  
 
-#
-# Show Budget Cat
-#
+##
+##  Show Budget Cat
+##
 
     def show_budgetcat_record(self, event):
         
@@ -292,9 +307,9 @@ class BudgetWindow(tk.Toplevel):
             self.entMonth11.insert(0, Month11)
             self.entMonth12.insert(0, Month12)
 
-#
-# Update Budget Cat
-#
+##
+##  Update Budget Cat
+##
 
     def update_budgetcats_data(self):
 
@@ -342,9 +357,9 @@ class BudgetWindow(tk.Toplevel):
 
         self.load_screen_data()
 
-#
-# Delete Budget Cat
-#
+##
+##  Delete Budget Cat
+##
 
     def delete_budgetcats_data(self):
   
@@ -362,9 +377,9 @@ class BudgetWindow(tk.Toplevel):
 
             self.load_screen_data()
 
-#
-#  Button - Clear Forms
-#
+##
+##  Button - Clear Forms
+##
 
     def clear_budgetcats_form(self):
 
